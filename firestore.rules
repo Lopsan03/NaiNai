@@ -1,0 +1,151 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: products
+    // Fields: name, price, description, image, active, sort_order
+    //
+    // Collection: orders
+    // Fields: customer_name, phone, delivery_type, address, order_details, notes, status, createdAt
+    //
+    // Collection: event_requests
+    // Fields: name, phone, email, event_type, guest_count, brownie_count, event_date, comments, status, createdAt
+    //
+    // Collection: contact_messages
+    // Fields: name, email, message, createdAt
+    //
+    // Collection: partners
+    // Fields: name, contact_name, phone, address, active
+    //
+    // Collection: partner_deliveries
+    // Fields: partner_id, partner_name, items, delivery_date, delivery_time, sold, sold_date, sold_time
+    //
+    // Collection: individual_sales
+    // Fields: product_id, product_name, price, sale_date, sale_time
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "games.com159753@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidString(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string &&
+        dateStr.matches("^\\d{4}-\\d{2}-\\d{2}.*");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidProduct(data) {
+      return hasRequiredFields(['name', 'price']) &&
+        data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+        data.price is number && data.price >= 0;
+    }
+
+    function isValidOrder(data) {
+      return hasRequiredFields(['customer_name', 'phone', 'order_details', 'status', 'createdAt']) &&
+        data.customer_name is string && data.customer_name.size() > 0 && data.customer_name.size() < 100 &&
+        data.phone is string && data.phone.size() > 0 && data.phone.size() < 20 &&
+        data.order_details is string && data.order_details.size() > 0 && data.order_details.size() < 1000 &&
+        data.status in ['pendiente', 'confirmado', 'entregado', 'cancelado'];
+    }
+
+    function isValidEventRequest(data) {
+      return hasRequiredFields(['name', 'phone', 'event_type', 'status', 'createdAt']) &&
+        data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+        data.phone is string && data.phone.size() > 0 && data.phone.size() < 20 &&
+        data.event_type is string && data.event_type.size() > 0 && data.event_type.size() < 100 &&
+        data.status in ['pendiente', 'cotizado', 'confirmado', 'completado'];
+    }
+
+    function isValidContactMessage(data) {
+      return hasRequiredFields(['name', 'email', 'message', 'createdAt']) &&
+        data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+        isValidEmail(data.email) &&
+        data.message is string && data.message.size() > 0 && data.message.size() < 2000;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidProduct(request.resource.data);
+    }
+
+    match /orders/{orderId} {
+      allow read: if isAdmin();
+      allow create: if isValidOrder(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+
+    match /event_requests/{requestId} {
+      allow read: if isAdmin();
+      allow create: if isValidEventRequest(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+
+    match /contact_messages/{messageId} {
+      allow read: if isAdmin();
+      allow create: if isValidContactMessage(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+
+    match /partners/{partnerId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /partner_deliveries/{deliveryId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /individual_sales/{saleId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

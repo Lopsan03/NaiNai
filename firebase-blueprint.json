@@ -1,0 +1,115 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "A brownie product in the catalog.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "The name of the product." },
+        "price": { "type": "number", "description": "The price of the product." },
+        "description": { "type": "string", "description": "A short description of the product." },
+        "image": { "type": "string", "description": "URL of the product image." },
+        "active": { "type": "boolean", "description": "Whether the product is currently available." },
+        "sort_order": { "type": "number", "description": "Order in which to display the product." }
+      },
+      "required": ["name", "price"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "A customer order for brownies.",
+      "type": "object",
+      "properties": {
+        "customer_name": { "type": "string", "description": "Name of the customer." },
+        "phone": { "type": "string", "description": "Phone number of the customer." },
+        "delivery_type": { "type": "string", "enum": ["entrega", "recoleccion"], "description": "Delivery method." },
+        "address": { "type": "string", "description": "Delivery address (if applicable)." },
+        "order_details": { "type": "string", "description": "Details of the brownie order." },
+        "notes": { "type": "string", "description": "Additional notes for the order." },
+        "status": { "type": "string", "enum": ["pendiente", "confirmado", "entregado", "cancelado"], "description": "Current status of the order." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the order was placed." }
+      },
+      "required": ["customer_name", "phone", "order_details", "status", "createdAt"]
+    },
+    "EventRequest": {
+      "title": "EventRequest",
+      "description": "An inquiry for event catering.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the contact person." },
+        "phone": { "type": "string", "description": "Phone number of the contact person." },
+        "email": { "type": "string", "format": "email", "description": "Email of the contact person." },
+        "event_type": { "type": "string", "description": "Type of event (e.g., wedding, birthday)." },
+        "guest_count": { "type": "number", "description": "Number of guests." },
+        "brownie_count": { "type": "number", "description": "Number of brownies requested." },
+        "event_date": { "type": "string", "format": "date", "description": "Date of the event." },
+        "comments": { "type": "string", "description": "Additional comments." },
+        "status": { "type": "string", "enum": ["pendiente", "cotizado", "confirmado", "completado"], "description": "Current status of the request." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the request was made." }
+      },
+      "required": ["name", "phone", "event_type", "status", "createdAt"]
+    },
+    "ContactMessage": {
+      "title": "ContactMessage",
+      "description": "A message from the contact form.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the person sending the message." },
+        "email": { "type": "string", "format": "email", "description": "Email of the person sending the message." },
+        "message": { "type": "string", "description": "The message content." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the message was sent." }
+      },
+      "required": ["name", "email", "message", "createdAt"]
+    },
+    "Partner": {
+      "title": "Partner",
+      "description": "A retail partner store.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the partner store." },
+        "contact_name": { "type": "string", "description": "Name of the contact person at the store." },
+        "phone": { "type": "string", "description": "Phone number of the store." },
+        "address": { "type": "string", "description": "Address of the store." },
+        "active": { "type": "boolean", "description": "Whether the partner is active." }
+      },
+      "required": ["name", "active"]
+    },
+    "PartnerDelivery": {
+      "title": "PartnerDelivery",
+      "description": "A delivery of brownies to a partner store.",
+      "type": "object",
+      "properties": {
+        "partner_id": { "type": "string", "description": "ID of the partner store." },
+        "partner_name": { "type": "string", "description": "Name of the partner store." },
+        "items": { "type": "array", "description": "List of products and quantities delivered." },
+        "delivery_date": { "type": "string", "format": "date", "description": "Date of delivery." },
+        "delivery_time": { "type": "string", "format": "time", "description": "Time of delivery." },
+        "sold": { "type": "boolean", "description": "Whether the delivery has been sold." },
+        "sold_date": { "type": "string", "format": "date", "description": "Date when the delivery was marked as sold." },
+        "sold_time": { "type": "string", "format": "time", "description": "Time when the delivery was marked as sold." }
+      },
+      "required": ["partner_id", "partner_name", "items", "delivery_date", "sold"]
+    },
+    "IndividualSale": {
+      "title": "IndividualSale",
+      "description": "A direct sale of a brownie.",
+      "type": "object",
+      "properties": {
+        "product_id": { "type": "string", "description": "ID of the product sold." },
+        "product_name": { "type": "string", "description": "Name of the product sold." },
+        "price": { "type": "number", "description": "Price at which the product was sold." },
+        "sale_date": { "type": "string", "format": "date", "description": "Date of sale." },
+        "sale_time": { "type": "string", "format": "time", "description": "Time of sale." }
+      },
+      "required": ["product_id", "product_name", "price", "sale_date", "sale_time"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": { "schema": "Product", "description": "Brownie products catalog." },
+    "/orders/{orderId}": { "schema": "Order", "description": "Customer orders." },
+    "/event_requests/{requestId}": { "schema": "EventRequest", "description": "Event catering inquiries." },
+    "/contact_messages/{messageId}": { "schema": "ContactMessage", "description": "Contact form messages." },
+    "/partners/{partnerId}": { "schema": "Partner", "description": "Retail partner stores." },
+    "/partner_deliveries/{deliveryId}": { "schema": "PartnerDelivery", "description": "Deliveries to partners." },
+    "/individual_sales/{saleId}": { "schema": "IndividualSale", "description": "Direct individual sales." }
+  }
+}
