@@ -11,7 +11,7 @@ const featuredProducts: Product[] = [
     name: 'King Brownie',
     price: 35,
     description: 'Ultra-thick dark chocolate brownie, glossy crackly top, served on dark slate.',
-    image: 'https://picsum.photos/seed/brownie1/800/800',
+    image: '/images/Brownie.png',
     active: true,
     sort_order: 1,
   },
@@ -20,7 +20,7 @@ const featuredProducts: Product[] = [
     name: 'Brookie Grande',
     price: 45,
     description: 'Cookie-brownie hybrid, golden top with gooey brownie underneath.',
-    image: 'https://picsum.photos/seed/brownie2/800/800',
+    image: '/images/Brownie.png',
     active: true,
     sort_order: 2,
   },
@@ -29,7 +29,7 @@ const featuredProducts: Product[] = [
     name: 'Brownie con Nuez',
     price: 40,
     description: 'Classic brownie with visible toasted walnuts.',
-    image: 'https://picsum.photos/seed/brownie3/800/800',
+    image: '/images/Brownie.png',
     active: true,
     sort_order: 3,
   },
@@ -38,7 +38,7 @@ const featuredProducts: Product[] = [
     name: 'Brookie Pequeño',
     price: 25,
     description: 'Smaller version of our famous Brookie, perfect for a quick treat.',
-    image: 'https://picsum.photos/seed/brownie4/800/800',
+    image: '/images/Brownie.png',
     active: true,
     sort_order: 4,
   },
@@ -66,12 +66,12 @@ export default function Home() {
       <section className="relative min-h-[90vh] flex items-center pt-20">
         <div className="absolute inset-0 z-0">
           <img
-            src="https://picsum.photos/seed/nainaihero/1920/1080?blur=2"
+            src="/images/Main BG.jpeg"
             alt="NaiNai Brownies"
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/30" />
+          <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/50 to-black/30" />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
@@ -142,42 +142,50 @@ export default function Home() {
       </section>
 
       {/* Promo Banner */}
-      <section className="relative py-32 overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img
-            src="https://picsum.photos/seed/promo/1920/1080"
-            alt="Promoción Especial"
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50" />
-        </div>
-
+      <section className="relative py-32 overflow-hidden" style={{ backgroundColor: '#e9161a' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            className="max-w-xl"
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary text-white text-sm font-bold mb-6">
-              <Star className="w-4 h-4 fill-current" />
-              Promoción Especial
-            </div>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold font-heading text-white mb-6">
-              King Brownie — 2 por $60
-            </h2>
-            <p className="text-xl text-white/80 mb-10 leading-relaxed">
-              Disfruta de nuestro brownie más icónico al doble. Perfecto para compartir (o no).
-            </p>
-            <Link
-              to="/ordenar"
-              className="inline-block px-10 py-4 rounded-full bg-primary text-white font-bold text-lg shadow-primary-glow hover:shadow-primary-glow-hover transition-all"
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            {/* Left: Image */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7 }}
+              className="rounded-3xl overflow-hidden shadow-2xl"
             >
-              Aprovechar Promoción
-            </Link>
-          </motion.div>
+              <img
+                src="/images/Promo.jpg"
+                alt="Promoción Especial"
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            </motion.div>
+
+            {/* Right: Text */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7 }}
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white text-red-600 text-sm font-bold mb-6">
+                <span className="w-3 h-3 bg-red-600 rounded-full" />
+                Promoción Especial
+              </div>
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold font-heading text-white mb-6">
+                King Brownie — 2 por $60
+              </h2>
+              <p className="text-xl text-white/90 mb-10 leading-relaxed">
+                Disfruta de nuestro brownie más icónico al doble. Perfecto para compartir (o no).
+              </p>
+              <Link
+                to="/ordenar"
+                className="inline-block px-10 py-4 rounded-full bg-white text-red-600 font-bold text-lg shadow-lg hover:bg-white/90 transition-all"
+              >
+                Aprovechar Promoción
+              </Link>
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -234,7 +242,7 @@ export default function Home() {
             >
               <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
                 <img
-                  src="https://picsum.photos/seed/nainaievents/800/1000"
+                  src="/images/Special events.png"
                   alt="Eventos NaiNai"
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"

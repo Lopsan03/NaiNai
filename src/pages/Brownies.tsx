@@ -11,7 +11,7 @@ const allProducts: Product[] = [
     name: 'King Brownie',
     price: 35,
     description: 'Ultra-thick dark chocolate brownie, glossy crackly top, served on dark slate.',
-    image: 'https://picsum.photos/seed/brownie1/800/800',
+    image: '/images/Brownie.png',
     active: true,
     sort_order: 1,
   },
@@ -20,7 +20,7 @@ const allProducts: Product[] = [
     name: 'Brookie Grande',
     price: 45,
     description: 'Cookie-brownie hybrid, golden top with gooey brownie underneath.',
-    image: 'https://picsum.photos/seed/brownie2/800/800',
+    image: '/images/Brownie.png',
     active: true,
     sort_order: 2,
   },
@@ -29,7 +29,7 @@ const allProducts: Product[] = [
     name: 'Brownie con Nuez',
     price: 40,
     description: 'Classic brownie with visible toasted walnuts.',
-    image: 'https://picsum.photos/seed/brownie3/800/800',
+    image: '/images/Brownie.png',
     active: true,
     sort_order: 3,
   },
@@ -38,7 +38,7 @@ const allProducts: Product[] = [
     name: 'Brookie Pequeño',
     price: 25,
     description: 'Smaller version of our famous Brookie, perfect for a quick treat.',
-    image: 'https://picsum.photos/seed/brownie4/800/800',
+    image: '/images/Brownie.png',
     active: true,
     sort_order: 4,
   },
@@ -46,13 +46,40 @@ const allProducts: Product[] = [
 
 export default function Brownies() {
   return (
-    <div className="pt-32 pb-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <SectionHeading
-          title="Nuestros Brownies"
-          subtitle="Explora nuestro catálogo completo de brownies artesanales. Cada uno es una experiencia única de sabor."
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+    <div className="overflow-hidden">
+      {/* Hero Section */}
+      <section className="relative min-h-[50vh] flex items-center pt-20">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/images/Brownie.png"
+            alt="Nuestros Brownies"
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/50 to-black/30" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="max-w-2xl"
+          >
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold font-heading text-white mb-6 leading-[1.1]">
+              Nuestros Brownies
+            </h1>
+            <p className="text-lg md:text-xl text-white/80 mb-10 max-w-lg leading-relaxed">
+              Explora nuestro catálogo completo de brownies artesanales. Cada uno es una experiencia única de sabor.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Products Section */}
+      <section className="py-24 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {allProducts.map((product, index) => (
             <ProductCard key={product.id} product={product} index={index} />
           ))}
@@ -83,7 +110,8 @@ export default function Brownies() {
             Aprovechar Promoción
           </Link>
         </motion.div>
-      </div>
+        </div>
+      </section>
     </div>
   );
 }

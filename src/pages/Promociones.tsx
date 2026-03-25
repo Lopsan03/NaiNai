@@ -15,12 +15,12 @@ export default function Promociones() {
           {/* Top Portion */}
           <div className="relative aspect-video">
             <img
-              src="https://picsum.photos/seed/kingbrownie/1200/800"
+              src="/images/Promo.jpg"
               alt="King Brownie Promo"
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
             <div className="absolute top-6 right-6 bg-primary text-white px-6 py-2 rounded-full font-bold text-xl shadow-lg">
               2 x $60
             </div>

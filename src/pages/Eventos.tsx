@@ -43,54 +43,85 @@ export default function Eventos() {
   };
 
   return (
-    <div className="pt-32 pb-24 bg-background min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <AnimatePresence mode="wait">
-          {!submitted ? (
-            <motion.div
-              key="form"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start"
-            >
-              {/* Left Column: Info */}
-              <div className="lg:sticky lg:top-32">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-bold mb-6">
-                  <PartyPopper className="w-4 h-4" />
-                  Eventos Especiales
-                </div>
-                <h1 className="text-4xl md:text-5xl font-bold font-heading mb-8">
-                  Brownies para Eventos Especiales
-                </h1>
-                <p className="text-lg text-muted-foreground mb-10 leading-relaxed">
-                  Hacemos que tus celebraciones sean inolvidables con nuestros brownies. Desde bodas y cumpleaños hasta eventos corporativos, tenemos la opción perfecta para ti.
-                </p>
+    <div className="overflow-hidden">
+      {/* Hero Section */}
+      <section className="relative min-h-[50vh] flex items-center pt-20">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/images/Special events.png"
+            alt="Eventos Especiales"
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/50 to-black/30" />
+        </div>
 
-                <div className="space-y-6 mb-12">
-                  {[
-                    { icon: Users, text: "Ideal para grupos de cualquier tamaño" },
-                    { icon: PartyPopper, text: "Personalización de empaques disponible" },
-                    { icon: CakeSlice, text: "Mesas de postres espectaculares" },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                        <item.icon className="w-6 h-6" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="max-w-2xl"
+          >
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold font-heading text-white mb-6 leading-[1.1]">
+              Brownies para Eventos Especiales
+            </h1>
+            <p className="text-lg md:text-xl text-white/80 mb-10 max-w-lg leading-relaxed">
+              Hacemos que tus celebraciones sean inolvidables con nuestros brownies.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Form Section */}
+      <div className="pt-32 pb-24 bg-background min-h-screen">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <AnimatePresence mode="wait">
+            {!submitted ? (
+              <motion.div
+                key="form"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start"
+              >
+                {/* Left Column: Info */}
+                <div className="lg:sticky lg:top-32">
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-bold mb-6">
+                    <PartyPopper className="w-4 h-4" />
+                    Eventos Especiales
+                  </div>
+                  <h1 className="text-4xl md:text-5xl font-bold font-heading mb-8">
+                    Brownies para Eventos Especiales
+                  </h1>
+                  <p className="text-lg text-muted-foreground mb-10 leading-relaxed">
+                    Hacemos que tus celebraciones sean inolvidables con nuestros brownies. Desde bodas y cumpleaños hasta eventos corporativos, tenemos la opción perfecta para ti.
+                  </p>
+
+                  <div className="space-y-6 mb-12">
+                    {[
+                      { icon: Users, text: "Ideal para grupos de cualquier tamaño" },
+                      { icon: PartyPopper, text: "Personalización de empaques disponible" },
+                      { icon: CakeSlice, text: "Mesas de postres espectaculares" },
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                          <item.icon className="w-6 h-6" />
+                        </div>
+                        <span className="font-bold text-lg">{item.text}</span>
                       </div>
-                      <span className="font-bold text-lg">{item.text}</span>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
 
-                <div className="aspect-video rounded-3xl overflow-hidden shadow-xl">
-                  <img
-                    src="https://picsum.photos/seed/eventphoto/1200/800"
-                    alt="Eventos NaiNai"
-                    className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
+                  <div className="aspect-video rounded-3xl overflow-hidden shadow-xl">
+                    <img
+                      src="/images/Special events.png"
+                      alt="Eventos NaiNai"
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
                 </div>
-              </div>
 
               {/* Right Column: Form */}
               <div className="bg-white rounded-3xl p-8 md:p-10 shadow-xl border border-border/50">
@@ -235,5 +266,6 @@ export default function Eventos() {
         </AnimatePresence>
       </div>
     </div>
+  </div>
   );
 }

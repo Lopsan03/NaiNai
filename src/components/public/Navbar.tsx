@@ -39,9 +39,11 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-10 h-10 lg:w-11 lg:h-11 bg-primary rounded flex items-center justify-center text-white font-heading font-bold text-xl">
-            NN
-          </div>
+          <img
+            src="/images/NAINAI LOGO.jpeg"
+            alt="NaiNai Logo"
+            className="w-10 h-10 lg:w-11 lg:h-11 rounded object-cover"
+          />
           <span className={cn(
             "font-heading font-bold text-2xl tracking-tight hidden sm:block",
             shouldShowSolid ? "text-primary" : "text-white"
