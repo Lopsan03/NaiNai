@@ -1,9 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Truck, Plus, X, Check, Calendar as CalendarIcon, Clock, Package, Store, Search } from 'lucide-react';
-import { db, handleFirestoreError, OperationType } from '@/src/firebase';
-import { collection, getDocs, addDoc, updateDoc, doc, query, orderBy, limit, where } from 'firebase/firestore';
-import { Product, Partner, PartnerDelivery } from '@/src/types';
+import { useStore } from '@/src/store';
 import { cn } from '@/src/lib/utils';
 import moment from 'moment';
 import { useSearchParams } from 'react-router-dom';
@@ -11,104 +9,49 @@ import { useSearchParams } from 'react-router-dom';
 export default function Entregas() {
   const [searchParams] = useSearchParams();
   const partnerIdParam = searchParams.get('partner');
-
-  const [partners, setPartners] = useState<Partner[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [deliveries, setDeliveries] = useState<PartnerDelivery[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { partners, products, deliveries, addDelivery, markDeliveryAsSold } = useStore();
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'register' | 'history'>('register');
   const [selectedPartnerId, setSelectedPartnerId] = useState<string>(partnerIdParam || '');
   const [quantities, setQuantities] = useState<{ [productId: string]: number }>({});
 
-  const fetchData = async () => {
-    try {
-      const [partnersSnap, productsSnap, deliveriesSnap] = await Promise.all([
-        getDocs(query(collection(db, 'partners'), where('active', '==', true), orderBy('name', 'asc'))),
-        getDocs(query(collection(db, 'products'), where('active', '==', true), orderBy('sort_order', 'asc'))),
-        getDocs(query(collection(db, 'partner_deliveries'), orderBy('delivery_date', 'desc'), orderBy('delivery_time', 'desc'), limit(50))),
-      ]);
+  const activePartners = partners.filter(p => p.active).sort((a, b) => a.name.localeCompare(b.name));
+  const activeProducts = products.filter(p => p.active).sort((a, b) => a.sort_order - b.sort_order);
 
-      setPartners(partnersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Partner)));
-      setProducts(productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
-      setDeliveries(deliveriesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as PartnerDelivery)));
-      
-      // Initialize quantities
-      const initialQuants: { [productId: string]: number } = {};
-      productsSnap.docs.forEach(doc => {
-        initialQuants[doc.id] = 0;
-      });
-      setQuantities(initialQuants);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.LIST, 'entregas_data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleRegisterDelivery = async (e: React.FormEvent) => {
+  const handleRegisterDelivery = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPartnerId) return alert('Selecciona un socio');
-    
+
     const items = Object.entries(quantities)
       .filter(([_, qty]) => qty > 0)
       .map(([id, qty]) => {
-        const product = products.find(p => p.id === id);
-        return {
-          product_id: id,
-          product_name: product?.name || 'Producto',
-          quantity: qty,
-        };
+        const product = activeProducts.find(p => p.id === id);
+        return { product_id: id, product_name: product?.name || 'Producto', quantity: qty };
       });
 
     if (items.length === 0) return alert('Agrega al menos un producto');
 
-    setLoading(true);
-    try {
-      const partner = partners.find(p => p.id === selectedPartnerId);
-      const now = moment();
-      await addDoc(collection(db, 'partner_deliveries'), {
-        partner_id: selectedPartnerId,
-        partner_name: partner?.name || 'Socio',
-        items,
-        delivery_date: now.format('YYYY-MM-DD'),
-        delivery_time: now.format('HH:mm'),
-        sold: false,
-      });
+    const partner = activePartners.find(p => p.id === selectedPartnerId);
+    const now = moment();
+    addDelivery({
+      partner_id: selectedPartnerId,
+      partner_name: partner?.name || 'Socio',
+      items,
+      delivery_date: now.format('YYYY-MM-DD'),
+      delivery_time: now.format('HH:mm'),
+      sold: false,
+    });
 
-      // Reset form
-      const resetQuants: { [productId: string]: number } = {};
-      products.forEach(p => { resetQuants[p.id!] = 0; });
-      setQuantities(resetQuants);
-      setSelectedPartnerId('');
-      setActiveTab('history');
-      fetchData();
-    } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'partner_deliveries');
-    } finally {
-      setLoading(false);
-    }
+    const resetQuants: { [productId: string]: number } = {};
+    activeProducts.forEach(p => { resetQuants[p.id!] = 0; });
+    setQuantities(resetQuants);
+    setSelectedPartnerId('');
+    setActiveTab('history');
   };
 
-  const handleMarkAsSold = async (delivery: PartnerDelivery) => {
+  const handleMarkAsSold = (delivery: typeof deliveries[0]) => {
     if (!confirm('¿Marcar este lote como vendido?')) return;
-    setLoading(true);
-    try {
-      const now = moment();
-      await updateDoc(doc(db, 'partner_deliveries', delivery.id!), {
-        sold: true,
-        sold_date: now.format('YYYY-MM-DD'),
-        sold_time: now.format('HH:mm'),
-      });
-      fetchData();
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, 'partner_deliveries');
-    } finally {
-      setLoading(false);
-    }
+    markDeliveryAsSold(delivery.id!);
   };
 
   return (
@@ -165,7 +108,7 @@ export default function Entregas() {
                     className="w-full px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all bg-white"
                   >
                     <option value="">Elegir socio...</option>
-                    {partners.map(p => (
+                    {activePartners.map(p => (
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
                   </select>
@@ -177,7 +120,7 @@ export default function Entregas() {
                     Cantidades por Producto
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {products.map(product => (
+                    {activeProducts.map(product => (
                       <div key={product.id} className="flex items-center justify-between p-4 rounded-2xl border border-border bg-muted/10">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg overflow-hidden border">
@@ -256,7 +199,7 @@ export default function Entregas() {
                   </span>
                 </div>
 
-                <div className="space-y-3 flex-grow">
+                <div className="space-y-3 grow">
                   <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Productos Entregados</p>
                   {delivery.items.map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between text-sm py-2 border-b border-border/50 last:border-0">

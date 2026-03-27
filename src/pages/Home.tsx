@@ -3,46 +3,7 @@ import { Link } from 'react-router-dom';
 import { ShoppingBag, ArrowRight, PartyPopper, CakeSlice, Users, Flame, Award, Heart, Star, Quote } from 'lucide-react';
 import SectionHeading from '@/src/components/public/SectionHeading';
 import ProductCard from '@/src/components/public/ProductCard';
-import { Product } from '@/src/types';
-
-const featuredProducts: Product[] = [
-  {
-    id: '1',
-    name: 'King Brownie',
-    price: 35,
-    description: 'Ultra-thick dark chocolate brownie, glossy crackly top, served on dark slate.',
-    image: '/images/Brownie.png',
-    active: true,
-    sort_order: 1,
-  },
-  {
-    id: '2',
-    name: 'Brookie Grande',
-    price: 45,
-    description: 'Cookie-brownie hybrid, golden top with gooey brownie underneath.',
-    image: '/images/Brownie.png',
-    active: true,
-    sort_order: 2,
-  },
-  {
-    id: '3',
-    name: 'Brownie con Nuez',
-    price: 40,
-    description: 'Classic brownie with visible toasted walnuts.',
-    image: '/images/Brownie.png',
-    active: true,
-    sort_order: 3,
-  },
-  {
-    id: '4',
-    name: 'Brookie Pequeño',
-    price: 25,
-    description: 'Smaller version of our famous Brookie, perfect for a quick treat.',
-    image: '/images/Brownie.png',
-    active: true,
-    sort_order: 4,
-  },
-];
+import { useStore } from '@/src/store';
 
 const testimonials = [
   {
@@ -60,6 +21,8 @@ const testimonials = [
 ];
 
 export default function Home() {
+  const { products } = useStore();
+  const featuredProducts = products.filter(p => p.active).sort((a, b) => a.sort_order - b.sort_order).slice(0, 4);
   return (
     <div className="overflow-hidden">
       {/* Hero Section */}
@@ -240,7 +203,7 @@ export default function Home() {
               transition={{ duration: 0.7 }}
               className="relative"
             >
-              <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
+              <div className="aspect-4/5 rounded-3xl overflow-hidden shadow-2xl">
                 <img
                   src="/images/Special events.png"
                   alt="Eventos NaiNai"

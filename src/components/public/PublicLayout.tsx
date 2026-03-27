@@ -16,7 +16,7 @@ export default function PublicLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-background selection:bg-primary selection:text-white">
       <Navbar />
-      <main className={cn("flex-grow", !isHomePage && "pt-16 lg:pt-20")}>
+      <main className={cn("grow", !isHomePage && "pt-16 lg:pt-20")}>
         <Outlet />
       </main>
       <Footer />

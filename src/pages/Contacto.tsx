@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mail, MapPin, Phone, CheckCircle2, Send } from 'lucide-react';
-import { db, handleFirestoreError, OperationType } from '@/src/firebase';
-import { collection, addDoc } from 'firebase/firestore';
 
 export default function Contacto() {
   const [submitted, setSubmitted] = useState(false);
@@ -13,21 +11,10 @@ export default function Contacto() {
     message: '',
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
-    try {
-      await addDoc(collection(db, 'contact_messages'), {
-        ...formData,
-        createdAt: new Date().toISOString(),
-      });
-      setSubmitted(true);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'contact_messages');
-    } finally {
-      setLoading(false);
-    }
+    setTimeout(() => { setLoading(false); setSubmitted(true); }, 400);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { StoreProvider } from './store';
 import PublicLayout from './components/public/PublicLayout';
 import Home from './pages/Home';
 import Brownies from './pages/Brownies';
@@ -20,6 +21,7 @@ import Pedidos from './pages/admin/Pedidos';
 
 export default function App() {
   return (
+    <StoreProvider>
     <Router>
       <Routes>
         {/* Public Routes */}
@@ -45,5 +47,6 @@ export default function App() {
         </Route>
       </Routes>
     </Router>
+    </StoreProvider>
   );
 }

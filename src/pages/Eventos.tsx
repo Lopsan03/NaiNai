@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PartyPopper, CheckCircle2, Users, CakeSlice, Calendar, MessageCircle } from 'lucide-react';
-import { db, handleFirestoreError, OperationType } from '@/src/firebase';
-import { collection, addDoc } from 'firebase/firestore';
 
 export default function Eventos() {
   const [submitted, setSubmitted] = useState(false);
@@ -18,24 +16,10 @@ export default function Eventos() {
     comments: '',
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
-    try {
-      await addDoc(collection(db, 'event_requests'), {
-        ...formData,
-        guest_count: Number(formData.guest_count),
-        brownie_count: Number(formData.brownie_count),
-        status: 'pendiente',
-        createdAt: new Date().toISOString(),
-      });
-      setSubmitted(true);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'event_requests');
-    } finally {
-      setLoading(false);
-    }
+    setTimeout(() => { setLoading(false); setSubmitted(true); }, 400);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {

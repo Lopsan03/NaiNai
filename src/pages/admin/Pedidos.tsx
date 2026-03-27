@@ -1,53 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShoppingBag, Check, X, Clock, MapPin, Phone, User, Calendar as CalendarIcon, Filter, Search, ChevronRight, ExternalLink } from 'lucide-react';
-import { db, handleFirestoreError, OperationType } from '@/src/firebase';
-import { collection, getDocs, updateDoc, doc, query, orderBy, limit } from 'firebase/firestore';
-import { Order } from '@/src/types';
+import { ShoppingBag, Check, X, Clock, MapPin, Phone, User, Calendar as CalendarIcon, ChevronRight, ExternalLink } from 'lucide-react';
+import { useStore } from '@/src/store';
 import { cn } from '@/src/lib/utils';
+import { Order } from '@/src/types';
 import moment from 'moment';
 
 export default function Pedidos() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { orders, updateOrderStatus } = useStore();
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'cancelled'>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  const fetchOrders = async () => {
-    try {
-      const q = query(collection(db, 'orders'), orderBy('created_at', 'desc'), limit(100));
-      const snap = await getDocs(q);
-      setOrders(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order)));
-    } catch (error) {
-      handleFirestoreError(error, OperationType.LIST, 'orders');
-    } finally {
-      setLoading(false);
+  const handleUpdateStatus = (id: string, status: Order['status']) => {
+    updateOrderStatus(id, status);
+    if (selectedOrder?.id === id) {
+      setSelectedOrder(prev => prev ? { ...prev, status } : null);
     }
   };
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
-  const handleUpdateStatus = async (id: string, status: Order['status']) => {
-    setLoading(true);
-    try {
-      await updateDoc(doc(db, 'orders', id), { status });
-      fetchOrders();
-      if (selectedOrder?.id === id) {
-        setSelectedOrder({ ...selectedOrder, status });
-      }
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, 'orders');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredOrders = orders.filter(order => {
-    if (filter === 'all') return true;
-    return order.status === filter;
-  });
+  const filteredOrders = orders.filter(order => filter === 'all' || order.status === filter);
 
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
@@ -66,14 +37,6 @@ export default function Pedidos() {
       default: return status;
     }
   };
-
-  if (loading && orders.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-10 pb-20">
@@ -222,14 +185,14 @@ export default function Pedidos() {
                       <div className="flex gap-3">
                         <button
                           onClick={() => handleUpdateStatus(selectedOrder.id!, 'completed')}
-                          className="flex-grow py-3 rounded-xl bg-green-500 text-white font-bold text-sm shadow-lg shadow-green-500/20 hover:shadow-green-500/30 transition-all flex items-center justify-center gap-2"
+                          className="grow py-3 rounded-xl bg-green-500 text-white font-bold text-sm shadow-lg shadow-green-500/20 hover:shadow-green-500/30 transition-all flex items-center justify-center gap-2"
                         >
                           <Check className="w-4 h-4" />
                           Completar
                         </button>
                         <button
                           onClick={() => handleUpdateStatus(selectedOrder.id!, 'cancelled')}
-                          className="flex-grow py-3 rounded-xl bg-destructive text-white font-bold text-sm shadow-lg shadow-destructive/20 hover:shadow-destructive/30 transition-all flex items-center justify-center gap-2"
+                          className="grow py-3 rounded-xl bg-destructive text-white font-bold text-sm shadow-lg shadow-destructive/20 hover:shadow-destructive/30 transition-all flex items-center justify-center gap-2"
                         >
                           <X className="w-4 h-4" />
                           Cancelar

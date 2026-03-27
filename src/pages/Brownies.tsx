@@ -1,50 +1,13 @@
 import { motion } from 'motion/react';
 import SectionHeading from '@/src/components/public/SectionHeading';
 import ProductCard from '@/src/components/public/ProductCard';
-import { Product } from '@/src/types';
 import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
-
-const allProducts: Product[] = [
-  {
-    id: '1',
-    name: 'King Brownie',
-    price: 35,
-    description: 'Ultra-thick dark chocolate brownie, glossy crackly top, served on dark slate.',
-    image: '/images/Brownie.png',
-    active: true,
-    sort_order: 1,
-  },
-  {
-    id: '2',
-    name: 'Brookie Grande',
-    price: 45,
-    description: 'Cookie-brownie hybrid, golden top with gooey brownie underneath.',
-    image: '/images/Brownie.png',
-    active: true,
-    sort_order: 2,
-  },
-  {
-    id: '3',
-    name: 'Brownie con Nuez',
-    price: 40,
-    description: 'Classic brownie with visible toasted walnuts.',
-    image: '/images/Brownie.png',
-    active: true,
-    sort_order: 3,
-  },
-  {
-    id: '4',
-    name: 'Brookie Pequeño',
-    price: 25,
-    description: 'Smaller version of our famous Brookie, perfect for a quick treat.',
-    image: '/images/Brownie.png',
-    active: true,
-    sort_order: 4,
-  },
-];
+import { useStore } from '@/src/store';
 
 export default function Brownies() {
+  const { products } = useStore();
+  const allProducts = products.filter(p => p.active).sort((a, b) => a.sort_order - b.sort_order);
   return (
     <div className="overflow-hidden">
       {/* Hero Section */}

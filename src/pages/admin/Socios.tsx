@@ -1,15 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Users, Plus, Edit2, Trash2, X, MapPin, Phone, User, Store } from 'lucide-react';
-import { db, handleFirestoreError, OperationType } from '@/src/firebase';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+import { useStore } from '@/src/store';
 import { Partner } from '@/src/types';
 import { cn } from '@/src/lib/utils';
 import { Link } from 'react-router-dom';
 
 export default function Socios() {
-  const [partners, setPartners] = useState<Partner[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { partners, addPartner, updatePartner, deletePartner } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const [formData, setFormData] = useState<Omit<Partner, 'id'>>({
@@ -20,84 +18,33 @@ export default function Socios() {
     active: true,
   });
 
-  const fetchPartners = async () => {
-    try {
-      const q = query(collection(db, 'partners'), orderBy('name', 'asc'));
-      const snap = await getDocs(q);
-      setPartners(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Partner)));
-    } catch (error) {
-      handleFirestoreError(error, OperationType.LIST, 'partners');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPartners();
-  }, []);
-
   const handleOpenModal = (partner?: Partner) => {
     if (partner) {
       setEditingPartner(partner);
-      setFormData({
-        name: partner.name,
-        contact_name: partner.contact_name || '',
-        phone: partner.phone || '',
-        address: partner.address || '',
-        active: partner.active,
-      });
+      setFormData({ name: partner.name, contact_name: partner.contact_name || '', phone: partner.phone || '', address: partner.address || '', active: partner.active });
     } else {
       setEditingPartner(null);
-      setFormData({
-        name: '',
-        contact_name: '',
-        phone: '',
-        address: '',
-        active: true,
-      });
+      setFormData({ name: '', contact_name: '', phone: '', address: '', active: true });
     }
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      if (editingPartner) {
-        await updateDoc(doc(db, 'partners', editingPartner.id!), formData);
-      } else {
-        await addDoc(collection(db, 'partners'), formData);
-      }
-      setIsModalOpen(false);
-      fetchPartners();
-    } catch (error) {
-      handleFirestoreError(error, editingPartner ? OperationType.UPDATE : OperationType.CREATE, 'partners');
-    } finally {
-      setLoading(false);
+    if (editingPartner) {
+      updatePartner(editingPartner.id!, formData);
+    } else {
+      addPartner(formData);
     }
+    setIsModalOpen(false);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     if (!confirm('¿Estás seguro de que quieres eliminar este socio?')) return;
-    setLoading(true);
-    try {
-      await deleteDoc(doc(db, 'partners', id));
-      fetchPartners();
-    } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, 'partners');
-    } finally {
-      setLoading(false);
-    }
+    deletePartner(id);
   };
 
-  if (loading && partners.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  const sortedPartners = [...partners].sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <div className="space-y-10">
@@ -116,7 +63,7 @@ export default function Socios() {
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {partners.map((partner, i) => (
+        {sortedPartners.map((partner, i) => (
           <motion.div
             key={partner.id}
             initial={{ opacity: 0, scale: 0.95 }}
@@ -147,7 +94,7 @@ export default function Socios() {
               </div>
             </div>
 
-            <div className="flex-grow">
+            <div className="grow">
               <div className="flex items-center gap-2 mb-2">
                 <h3 className="font-bold text-xl leading-tight">{partner.name}</h3>
                 <span className={cn(
@@ -177,13 +124,13 @@ export default function Socios() {
             <div className="mt-8 pt-6 border-t flex gap-3">
               <Link
                 to={`/admin/entregas?partner=${partner.id}`}
-                className="flex-grow py-2.5 rounded-xl bg-muted/50 text-foreground font-bold text-xs text-center hover:bg-muted transition-all"
+                className="grow py-2.5 rounded-xl bg-muted/50 text-foreground font-bold text-xs text-center hover:bg-muted transition-all"
               >
                 Entregas
               </Link>
               <Link
                 to={`/admin/reportes?partner=${partner.id}`}
-                className="flex-grow py-2.5 rounded-xl bg-muted/50 text-foreground font-bold text-xs text-center hover:bg-muted transition-all"
+                className="grow py-2.5 rounded-xl bg-muted/50 text-foreground font-bold text-xs text-center hover:bg-muted transition-all"
               >
                 Ventas
               </Link>
@@ -195,7 +142,7 @@ export default function Socios() {
       {/* Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -285,14 +232,14 @@ export default function Socios() {
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="flex-grow py-4 rounded-xl border border-border font-bold hover:bg-muted transition-all"
+                    className="grow py-4 rounded-xl border border-border font-bold hover:bg-muted transition-all"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-grow py-4 rounded-xl bg-primary text-white font-bold shadow-primary-glow hover:shadow-primary-glow-hover transition-all disabled:opacity-50"
+                    className="grow py-4 rounded-xl bg-primary text-white font-bold shadow-primary-glow hover:shadow-primary-glow-hover transition-all disabled:opacity-50"
                   >
                     {loading ? 'Guardando...' : editingPartner ? 'Actualizar' : 'Crear'}
                   </button>

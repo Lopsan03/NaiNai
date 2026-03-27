@@ -1,61 +1,21 @@
-import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Package, ShoppingCart, Users, DollarSign, ArrowUpRight, ArrowDownRight, Truck, BarChart3 } from 'lucide-react';
+import { Package, ShoppingCart, Users, DollarSign, Truck, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { db, handleFirestoreError, OperationType } from '@/src/firebase';
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
-import { Product, IndividualSale, Partner } from '@/src/types';
+import { useStore } from '@/src/store';
 import { cn } from '@/src/lib/utils';
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({
-    products: 0,
-    sales: 0,
-    partners: 0,
-    revenue: 0,
-  });
-  const [recentSales, setRecentSales] = useState<IndividualSale[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { products, sales, partners } = useStore();
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const [productsSnap, salesSnap, partnersSnap] = await Promise.all([
-          getDocs(collection(db, 'products')),
-          getDocs(collection(db, 'individual_sales')),
-          getDocs(collection(db, 'partners')),
-        ]);
-
-        const salesData = salesSnap.docs.map(doc => doc.data() as IndividualSale);
-        const totalRevenue = salesData.reduce((acc, sale) => acc + (sale.total_price || 0), 0);
-
-        setStats({
-          products: productsSnap.size,
-          sales: salesSnap.size,
-          partners: partnersSnap.size,
-          revenue: totalRevenue,
-        });
-
-        // Fetch recent sales
-        const recentQuery = query(collection(db, 'individual_sales'), orderBy('sale_date', 'desc'), orderBy('sale_time', 'desc'), limit(5));
-        const recentSnap = await getDocs(recentQuery);
-        setRecentSales(recentSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as IndividualSale)));
-
-      } catch (error) {
-        handleFirestoreError(error, OperationType.LIST, 'dashboard_stats');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, []);
+  const totalRevenue = sales.reduce((acc, s) => acc + (s.total_price || 0), 0);
+  const recentSales = sales.slice(0, 5);
+  const loading = false;
 
   const statCards = [
-    { name: 'Productos', value: stats.products, icon: Package, color: 'bg-blue-500' },
-    { name: 'Ventas Totales', value: stats.sales, icon: ShoppingCart, color: 'bg-green-500' },
-    { name: 'Socios / Socios', value: stats.partners, icon: Users, color: 'bg-purple-500' },
-    { name: 'Ingresos Totales', value: `$${stats.revenue.toLocaleString()}`, icon: DollarSign, color: 'bg-primary' },
+    { name: 'Productos', value: products.length, icon: Package, color: 'bg-blue-500' },
+    { name: 'Ventas Totales', value: sales.length, icon: ShoppingCart, color: 'bg-green-500' },
+    { name: 'Socios', value: partners.length, icon: Users, color: 'bg-purple-500' },
+    { name: 'Ingresos Totales', value: `$${totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'bg-primary' },
   ];
 
   if (loading) {

@@ -1,62 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingCart, History, Check, DollarSign, Package, Clock, Calendar as CalendarIcon } from 'lucide-react';
-import { db, handleFirestoreError, OperationType } from '@/src/firebase';
-import { collection, getDocs, addDoc, query, orderBy, limit } from 'firebase/firestore';
-import { Product, IndividualSale } from '@/src/types';
+import { useStore } from '@/src/store';
 import { cn } from '@/src/lib/utils';
 import moment from 'moment';
 
 export default function Ventas() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [sales, setSales] = useState<IndividualSale[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { products, sales, addSale } = useStore();
   const [activeTab, setActiveTab] = useState<'pos' | 'history'>('pos');
   const [sellingId, setSellingId] = useState<string | null>(null);
 
-  const fetchData = async () => {
-    try {
-      const [productsSnap, salesSnap] = await Promise.all([
-        getDocs(query(collection(db, 'products'), orderBy('sort_order', 'asc'))),
-        getDocs(query(collection(db, 'individual_sales'), orderBy('sale_date', 'desc'), orderBy('sale_time', 'desc'), limit(50))),
-      ]);
+  const activeProducts = products.filter(p => p.active).sort((a, b) => a.sort_order - b.sort_order);
 
-      setProducts(productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)).filter(p => p.active));
-      setSales(salesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as IndividualSale)));
-    } catch (error) {
-      handleFirestoreError(error, OperationType.LIST, 'ventas_data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const handleSale = async (product: Product) => {
+  const handleSale = (product: typeof products[0]) => {
     setSellingId(product.id!);
-    try {
-      const now = moment();
-      await addDoc(collection(db, 'individual_sales'), {
-        items: [{
-          product_id: product.id,
-          product_name: product.name,
-          quantity: 1,
-          price: product.price,
-        }],
-        total_price: product.price,
-        sale_date: now.format('YYYY-MM-DD'),
-        sale_time: now.format('HH:mm'),
-      });
-      
-      // Optimistic update for history if on that tab, but we'll just refresh
-      setTimeout(() => setSellingId(null), 1000);
-      fetchData();
-    } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'individual_sales');
-      setSellingId(null);
-    }
+    const now = moment();
+    addSale({
+      items: [{ product_id: product.id!, product_name: product.name, quantity: 1, price: product.price }],
+      total_price: product.price,
+      sale_date: now.format('YYYY-MM-DD'),
+      sale_time: now.format('HH:mm'),
+    });
+    setTimeout(() => setSellingId(null), 1000);
   };
 
   return (
@@ -99,7 +64,7 @@ export default function Ventas() {
             exit={{ opacity: 0, y: -20 }}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
           >
-            {products.map((product) => (
+            {activeProducts.map((product) => (
               <div
                 key={product.id}
                 className="bg-white rounded-2xl border border-border/50 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col"
@@ -112,7 +77,7 @@ export default function Ventas() {
                     referrerPolicy="no-referrer"
                   />
                 </div>
-                <div className="p-6 flex-grow flex flex-col">
+                <div className="p-6 grow flex flex-col">
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <h3 className="font-bold text-lg leading-tight">{product.name}</h3>
                     <span className="font-bold text-primary text-xl">${product.price}</span>

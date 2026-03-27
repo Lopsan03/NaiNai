@@ -1,44 +1,12 @@
-import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { BarChart3, TrendingUp, DollarSign, ShoppingBag, Users, Calendar as CalendarIcon, Download, Filter } from 'lucide-react';
-import { db, handleFirestoreError, OperationType } from '@/src/firebase';
-import { collection, getDocs, query, orderBy, where, limit } from 'firebase/firestore';
-import { IndividualSale, PartnerDelivery, Product, Partner } from '@/src/types';
+import { BarChart3, TrendingUp, DollarSign, ShoppingBag, Users, Calendar as CalendarIcon, Download } from 'lucide-react';
+import { useStore } from '@/src/store';
 import { cn } from '@/src/lib/utils';
 import moment from 'moment';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 
 export default function Reportes() {
-  const [sales, setSales] = useState<IndividualSale[]>([]);
-  const [deliveries, setDeliveries] = useState<PartnerDelivery[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [partners, setPartners] = useState<Partner[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [timeframe, setTimeframe] = useState<'today' | 'week' | 'month'>('week');
-
-  const fetchData = async () => {
-    try {
-      const [salesSnap, deliveriesSnap, productsSnap, partnersSnap] = await Promise.all([
-        getDocs(query(collection(db, 'individual_sales'), orderBy('sale_date', 'desc'), limit(100))),
-        getDocs(query(collection(db, 'partner_deliveries'), orderBy('delivery_date', 'desc'), limit(100))),
-        getDocs(collection(db, 'products')),
-        getDocs(collection(db, 'partners')),
-      ]);
-
-      setSales(salesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as IndividualSale)));
-      setDeliveries(deliveriesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as PartnerDelivery)));
-      setProducts(productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
-      setPartners(partnersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Partner)));
-    } catch (error) {
-      handleFirestoreError(error, OperationType.LIST, 'reports_data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const { sales, deliveries, products, partners } = useStore();
 
   // Calculate Stats
   const totalRevenue = sales.reduce((sum, sale) => sum + (sale.total_price || 0), 0);
@@ -66,14 +34,6 @@ export default function Reportes() {
   });
 
   const COLORS = ['#FF6321', '#FF8B57', '#FFB38E', '#FFDBC5', '#000000'];
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-10 pb-20">
@@ -131,7 +91,7 @@ export default function Reportes() {
               {moment().subtract(6, 'days').format('D MMM')} - {moment().format('D MMM')}
             </div>
           </div>
-          <div className="h-[300px] w-full">
+          <div className="h-75 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dailySalesData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
@@ -165,7 +125,7 @@ export default function Reportes() {
           className="bg-white p-8 rounded-3xl border border-border/50 shadow-sm"
         >
           <h3 className="text-xl font-bold font-heading mb-8">Mix de Productos</h3>
-          <div className="h-[300px] w-full flex items-center justify-center">
+          <div className="h-75 w-full flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie

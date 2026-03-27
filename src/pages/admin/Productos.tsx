@@ -1,14 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Package, Plus, Edit2, Trash2, X, Check, Image as ImageIcon } from 'lucide-react';
-import { db, handleFirestoreError, OperationType } from '@/src/firebase';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+import { Package, Plus, Edit2, Trash2, X } from 'lucide-react';
+import { useStore } from '@/src/store';
 import { Product } from '@/src/types';
 import { cn } from '@/src/lib/utils';
 
 export default function Productos() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { products, addProduct, updateProduct, deleteProduct } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState<Omit<Product, 'id'>>({
@@ -19,22 +17,6 @@ export default function Productos() {
     active: true,
     sort_order: 0,
   });
-
-  const fetchProducts = async () => {
-    try {
-      const q = query(collection(db, 'products'), orderBy('sort_order', 'asc'));
-      const snap = await getDocs(q);
-      setProducts(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
-    } catch (error) {
-      handleFirestoreError(error, OperationType.LIST, 'products');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
 
   const handleOpenModal = (product?: Product) => {
     if (product) {
@@ -61,45 +43,22 @@ export default function Productos() {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      if (editingProduct) {
-        await updateDoc(doc(db, 'products', editingProduct.id!), formData);
-      } else {
-        await addDoc(collection(db, 'products'), formData);
-      }
-      setIsModalOpen(false);
-      fetchProducts();
-    } catch (error) {
-      handleFirestoreError(error, editingProduct ? OperationType.UPDATE : OperationType.CREATE, 'products');
-    } finally {
-      setLoading(false);
+    if (editingProduct) {
+      updateProduct(editingProduct.id!, formData);
+    } else {
+      addProduct(formData);
     }
+    setIsModalOpen(false);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     if (!confirm('¿Estás seguro de que quieres eliminar este producto?')) return;
-    setLoading(true);
-    try {
-      await deleteDoc(doc(db, 'products', id));
-      fetchProducts();
-    } catch (error) {
-      handleFirestoreError(error, OperationType.DELETE, 'products');
-    } finally {
-      setLoading(false);
-    }
+    deleteProduct(id);
   };
 
-  if (loading && products.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  const sortedProducts = [...products].sort((a, b) => a.sort_order - b.sort_order);
 
   return (
     <div className="space-y-10">
@@ -118,7 +77,7 @@ export default function Productos() {
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {products.map((product, i) => (
+        {sortedProducts.map((product, i) => (
           <motion.div
             key={product.id}
             initial={{ opacity: 0, scale: 0.95 }}
@@ -179,7 +138,7 @@ export default function Productos() {
       {/* Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -247,7 +206,7 @@ export default function Productos() {
                     <input
                       value={formData.image}
                       onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                      className="flex-grow px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                      className="grow px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
                       placeholder="https://..."
                     />
                     <div className="w-12 h-12 rounded-xl border border-border flex items-center justify-center bg-muted/30 overflow-hidden shrink-0">
@@ -292,14 +251,14 @@ export default function Productos() {
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="flex-grow py-4 rounded-xl border border-border font-bold hover:bg-muted transition-all"
+                    className="grow py-4 rounded-xl border border-border font-bold hover:bg-muted transition-all"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-grow py-4 rounded-xl bg-primary text-white font-bold shadow-primary-glow hover:shadow-primary-glow-hover transition-all disabled:opacity-50"
+                    className="grow py-4 rounded-xl bg-primary text-white font-bold shadow-primary-glow hover:shadow-primary-glow-hover transition-all disabled:opacity-50"
                   >
                     {loading ? 'Guardando...' : editingProduct ? 'Actualizar' : 'Crear'}
                   </button>

@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShoppingBag, CheckCircle2, MessageCircle, MapPin, Truck, Store } from 'lucide-react';
-import { db, handleFirestoreError, OperationType } from '@/src/firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { useStore } from '@/src/store';
 import { cn } from '@/src/lib/utils';
 
 export default function Ordenar() {
+  const { addOrder } = useStore();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -17,22 +17,21 @@ export default function Ordenar() {
     notes: '',
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
-    try {
-      await addDoc(collection(db, 'orders'), {
-        ...formData,
-        status: 'pendiente',
-        createdAt: new Date().toISOString(),
-      });
-      setSubmitted(true);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'orders');
-    } finally {
-      setLoading(false);
-    }
+    addOrder({
+      customer_name: formData.customer_name,
+      customer_phone: formData.phone,
+      delivery_type: formData.delivery_type === 'entrega' ? 'delivery' : 'pickup',
+      delivery_address: formData.address,
+      items: [{ product_id: 'custom', product_name: formData.order_details, quantity: 1, price: 0 }],
+      total_price: 0,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+    });
+    setLoading(false);
+    setSubmitted(true);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
